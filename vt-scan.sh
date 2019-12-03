@@ -5,12 +5,13 @@
 VERSION="1.0 (December 3rd, 2019)"
 
 check_deps() {
+    # Validate that curl and jq are available
     if ! [[ -f /usr/bin/curl ]]; then
         echo -ne "You are missing curl, which is required to run this script. Please install curl and try again.\n\n"
-        exit 126
+        exit 4
     elif ! [[ -f /usr/bin/jq ]]; then
         echo -ne "You are missing jq, which is required to run this script. Please install jq and try again.\n\n"
-        exit 127
+        exit 5
     fi
 }
 
@@ -30,16 +31,20 @@ write_usage() {
 }
 
 vt_scan() {
+    # Submit a file for scanning by VT
     APIKEY="$1"
     FILE="$2"
     curl -s --request POST --url "https://www.virustotal.com/vtapi/v2/file/scan" --form "apikey=$APIKEY" --form "file=@$FILE"
 }
 
 vt_report() {
+    # Retrieve a scan report from VT
     APIKEY="$1"
     RESOURCE="$2"
     curl -s --request GET --url "https://www.virustotal.com/vtapi/v2/file/report?apikey=$APIKEY&resource=$RESOURCE"
 }
+
+##### EXECUTION BEGINS HERE #####
 # Make sure we have the necessary dependencies
 check_deps
 
