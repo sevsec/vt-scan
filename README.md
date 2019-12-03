@@ -7,11 +7,11 @@ I'm sure this project already exists, but I whipped it up quickly on my own out 
 
 ## Requirements
 This is a bash script, so the requirements are:
-    - bash
-    - curl
-    - jq
+    * bash
+    * curl
+    * jq
 
-This script also requires that you supply your own API token for VT.
+This script also requires that you supply your own API token for VT. You may sign up for VT (and then generate a token) here: https://www.virustotal.com/gui/join-us.
 
 
 ## TODO:
