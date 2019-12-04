@@ -2,8 +2,10 @@
 Simple bash script that allows you to either submit a file object for scan by VirusTotal or retrieve a report from a VirusTotal scan.
 
 
-Why bash? Because it's easily available on most Linux boxes and doesn't require installing a separate interpreter or additional overhead.
-I'm sure this project already exists, but I whipped it up quickly on my own out of necessity.
+Why bash? Because it's easily available on most Linux boxes and doesn't require installing a separate interpreter or additional overhead (libraries, smaller footprint).
+
+
+For the record, I'm sure similar projects already exist, but since I quickly created this out of necessity, I figured that I'd share it anyway.
 
 ## Requirements
 This is a bash script, so the requirements are:
