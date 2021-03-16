@@ -2,14 +2,21 @@
 # Current functionality:
 #  - Submit a file object to be scanned by VT
 #  - Retrieve a scan report from VT
-VERSION="1.0 (December 3rd, 2019)"
+set -e
+set -u
+set -o pipefail
+VERSION="Version 2.0 (March 16, 2020)"
 
 check_deps() {
     # Validate that curl and jq are available
-    if ! [[ -f /usr/bin/curl ]]; then
+    which curl > /dev/null 2>&1
+    if [[ "$?" -ne 0 ]]; then
         echo -ne "You are missing curl, which is required to run this script. Please install curl and try again.\n\n"
         exit 4
-    elif ! [[ -f /usr/bin/jq ]]; then
+    fi
+
+    which jq > /dev/null 2>&1
+    if [[ "$?" -ne 0 ]]; then
         echo -ne "You are missing jq, which is required to run this script. Please install jq and try again.\n\n"
         exit 5
     fi
@@ -17,31 +24,60 @@ check_deps() {
 
 write_usage() {
     # output script purpose, params
-    echo "VirusTotal Scan Script - $VERSION"
-    echo -ne "Submit a file object to VirusTotal for analysis.\n\n"
-    echo -ne "Required parameters: API token, file path.\n"
-    echo -ne "Usage: ./vt-scan.sh -t <API TOKEN> -f <FILE PATH>\n\n"
-    echo -ne "\t-t\t\tAPI Token for VirusTotal (required).\n"
-    echo -ne "\t-f\t\tFull path(?) to file object for VT to scan.\n"
-    echo -ne "\t-o\t\tSave VT output to a file (optional).\n"
-    echo -ne "\t-r\t\tGet report on a resource that has been scanned (optional).\n"
-    echo -ne "\t\t\t(Note: enabling this will supercede a scan request.)\n"
+    echo "VirusTotal Scan Script for API V3"
+    echo -ne "Interact with VT from your shell.\n\n"
+    echo -ne "Required parameters: API token, Action to perform.\n"
+    echo -ne "Usage example: ./vt-scan.sh -t <API TOKEN> -f <FILE PATH>\n\n"
+    echo -ne "\t-k\t\tAPI key for VirusTotal - REQUIRED.\n"
+    echo -ne "\t-f\t\tFULL PATH to a file object for VT to scan.\n"
+    echo -ne "\t-u\t\tSubmit URL for VT scan.\n"
+    echo -ne "\t-d\t\tSubmit domain for VT scan.\n"
+    echo -ne "\t-i\t\tSubmit IP for VT scan.\n"
+    echo -ne "\t-a\t\tRetrieve analysis for existing scan, expects base64 object ID.\n"
     echo -ne "\t-v\t\tDisplay version information.\n"
     echo -ne "\t-h\t\tDisplay this help text with usage information.\n\n"
 }
 
-vt_scan() {
-    # Submit a file for scanning by VT
+vt_file() {
+    # Submit a file
     APIKEY="$1"
     FILE="$2"
-    curl -s --request POST --url "https://www.virustotal.com/vtapi/v2/file/scan" --form "apikey=$APIKEY" --form "file=@$FILE"
+    curl -s --request POST --url "https://www.virustotal.com/api/v3/files" --header "x-apikey: $APIKEY" --form "file=@$FILE"
+}
+
+vt_url() {
+    # Submit a URL
+    APIKEY="$1"
+    URL="$2"
+    curl -s --request GET --url "https://www.virustotal.com/api/v3/urls" --header "x-apikey: $APIKEY" --form "url=$URL"
+}
+
+vt_domain() {
+    # Submit a domain
+    APIKEY="$1"
+    DOMAIN="$2"
+    curl -s --request GET --url "https://www.virustotal.com/api/v3/domains/$DOMAIN" --header "x-apikey: $APIKEY"
+}
+
+vt_ip() {
+    # Submit an IP
+    APIKEY="$1"
+    IP="$2"
+    curl -s --request GET --url "https://www.virustotal.com/api/v3/ip_addresses/$IP" --header "x-apikey: $APIKEY"
+}
+
+vt_analysis() {
+    # Retrieve analysis for a file
+    APIKEY="$1"
+    FILEID="$2"
+    curl -s --request GET --url "https://www.virustotal.com/api/v3/analyses/$FILEID" --header "x-apikey: $APIKEY"
 }
 
 vt_report() {
-    # Retrieve a scan report from VT
+    # Retrieve a report - I believe this is deprecated, leaving in for now
     APIKEY="$1"
     RESOURCE="$2"
-    curl -s --request GET --url "https://www.virustotal.com/vtapi/v2/file/report?apikey=$APIKEY&resource=$RESOURCE"
+    curl -s --request GET --url "https://www.virustotal.com/api/v3/file/report?apikey=$APIKEY&resource=$RESOURCE"
 }
 
 ##### EXECUTION BEGINS HERE #####
@@ -49,68 +85,57 @@ vt_report() {
 check_deps
 
 # Grab CLI options
-while getopts ":t:f:v:h:o:r:" FLAG; do
-    case $FLAG in
-        t) #API Token
+while getopts ":k:a:f:u:d:i:vh:" FLAG; do
+    case ${FLAG} in
+        k ) #API Token
             if [[ "$OPTARG" =~ [0-9a-z]{64} ]]; then
                 APIKEY="$OPTARG"
             else
                 echo "Invalid API key: $OPTARG"
                 exit 2
-            fi;;
-        f) # File and file path
+            fi
+            ;;
+        a ) # Retrieve analysis on a file
+            FILEID="$OPTARG"
+            vt_analysis "$APIKEY" "$FILEID"
+            exit 0
+            ;;
+        f ) # File and file path
             if [[ -f "$OPTARG" ]]; then
                 FILE="$OPTARG"
+                vt_file "$APIKEY" "$FILE"
             else
                 echo "Invalid file specified: $OPTARG"
                 exit 3
-            fi;;
-        o) # Output from VT
-            OUTFILE="$OPTARG";;
-        r)
-            RESOURCE="$OPTARG";;
-        v) # Display version information
+            fi
+            exit 0
+            ;;
+        u ) # URL
+            URL="$OPTARG"
+            vt_url "$APIKEY" "$URL"
+            exit 0
+            ;;
+        d ) # Domain
+            DOMAIN="$OPTARG"
+            vt_domain "$APIKEY" "$DOMAIN"
+            exit 0
+            ;;
+        i ) # IP
+            IP="$OPTARG"
+            vt_ip "$APIKEY" "$IP"
+            exit 0
+            ;;
+        v ) # Display version information
             echo $VERSION
-            exit 0;;
-        h) # Help
+            exit 0
+            ;;
+        h | * | \? | :) # Help
             write_usage
-            exit 0;;
-        *) # Missing option
-            echo "ERROR: missing an option."
-            write_usage
-            exit 1;;
-        :) # Missing argument
-            echo "ERROR: missing an argument."
-            write_usage
-            exit 1;;
-        \?) # Unknown option
-            echo "ERROR: Unknown argument/option."
-            write_usage
-            exit 1;;
+            exit 0
+            ;;
     esac
 done
-shift "$((OPTIND-1))"
+shift $((OPTIND -1))
 
-# If we don't have the require params, throw an error
-if [[ $APIKEY ]] && [[ $RESOURCE ]]; then
-    # If we have an API token and a report ID, silently curl
-    RESULTS=$(vt_report "$APIKEY" "$RESOURCE")
-
-    if [[ -n $OUTFILE ]]; then
-        echo $RESULTS | jq '.' | cat > $OUTFILE
-    fi
-
-    echo $RESULTS | jq
-elif [[ $APIKEY ]] && [[ $FILE ]]; then
-    # If we have an API token and a file, silently curl
-    RESULTS=$(vt_scan "$APIKEY" "$FILE")
-
-    if [[ -n $OUTFILE ]]; then
-        echo $RESULTS | jq '.' | cat > $OUTFILE
-    fi
-
-    echo $RESULTS | jq
-else
-    echo -ne "Either you did not give the required parameters or you wish to do nothing. So be it.\n\n"
-    write_usage
-fi
+echo -ne "Either you did not give the required parameters or you wish to do nothing. So be it.\n\n"
+write_usage
