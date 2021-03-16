@@ -20,3 +20,4 @@ This script also requires that you supply your own API token for VT. You may sig
 * Allow reading API token from local file (e.g. .vtscan/token)  
 * Integrate additional public APIs from VT  
 * Integrate addition private APIs from VT  
+* Pretty-print output formatting; human-readable terminal output  
