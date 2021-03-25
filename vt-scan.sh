@@ -2,7 +2,6 @@
 # Current functionality:
 #  - Submit a file object to be scanned by VT
 #  - Retrieve a scan report from VT
-set -e
 set -u
 set -o pipefail
 VERSION="Version 2.0 (March 16, 2020)"
