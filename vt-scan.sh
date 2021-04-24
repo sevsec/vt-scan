@@ -4,7 +4,7 @@
 #  - Retrieve a scan report from VT
 set -u
 set -o pipefail
-VERSION="Version 2.0 (March 16, 2020)"
+VERSION="Version 2.1 (April 26, 2021)"
 
 check_deps() {
     # Validate that curl and jq are available
@@ -41,7 +41,20 @@ vt_file() {
     # Submit a file
     APIKEY="$1"
     FILE="$2"
-    curl -s --request POST --url "https://www.virustotal.com/api/v3/files" --header "x-apikey: $APIKEY" --form "file=@$FILE"
+    local FSIZE=$(stat $FILE | grep "Size:" | awk '{print $2}')
+    if [[ $FSIZE -gt 33554431 ]]; then
+      vt_bigfile "$APIKEY" "$FILE"
+    else
+      curl -s --request POST --url "https://www.virustotal.com/api/v3/files" --header "x-apikey: $APIKEY" --form "file=@$FILE"
+    fi
+}
+
+vt_bigfile() {
+    # files > 32M need a special upload URL
+    APIKEY="$1"
+    FILE="$2"
+    URL=$(curl -s --request GET --url "https://www.virustotal.com/api/v3/files/upload_url" --header "x-apikey: $APIKEY" | jq -r .data)
+    curl -s --request POST --url "$URL" --header "x-apikey: $APIKEY" --form "file=@$FILE"
 }
 
 vt_url() {
