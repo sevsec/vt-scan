@@ -54,7 +54,7 @@ vt_bigfile() {
     APIKEY="$1"
     FILE="$2"
     local URL=$(curl -s --request GET --url "https://www.virustotal.com/api/v3/files/upload_url" --header "x-apikey: $APIKEY" | jq .data)
-    echo curl -s --request POST --url $URL --header "x-apikey: $APIKEY" --form "file=@$FILE"
+    curl -s --request POST --url $URL --header "x-apikey: $APIKEY" --form "file=@$FILE"
 }
 
 vt_url() {
