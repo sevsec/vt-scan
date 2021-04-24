@@ -20,7 +20,7 @@ VirusTotal Scan Script for API V3
 Interact with VT from your shell.  
   
 Required parameters: API token, Action to perform.  
-Usage example: ./vt-scan.sh -t <API TOKEN> -f <FILE PATH>  
+Usage example: `./vt-scan.sh -k <API TOKEN> -f <FILE PATH>`  
 
 	-k		API key for VirusTotal - REQUIRED.  
 	-f		FULL PATH to a file object for VT to scan.  
