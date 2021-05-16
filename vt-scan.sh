@@ -26,7 +26,7 @@ write_usage() {
     echo "VirusTotal Scan Script for API V3"
     echo -ne "Interact with VT from your shell.\n\n"
     echo -ne "Required parameters: API token, Action to perform.\n"
-    echo -ne "Usage example: ./vt-scan.sh -t <API TOKEN> -f <FILE PATH>\n\n"
+    echo -ne "Usage example: ./vt-scan.sh -k <API TOKEN> -f <FILE PATH>\n\n"
     echo -ne "\t-k\t\tAPI key for VirusTotal - REQUIRED.\n"
     echo -ne "\t-f\t\tFULL PATH to a file object for VT to scan.\n"
     echo -ne "\t-u\t\tSubmit URL for VT scan.\n"
