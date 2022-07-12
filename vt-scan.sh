@@ -41,7 +41,7 @@ vt_file() {
     # Submit a file
     APIKEY="$1"
     FILE="$2"
-    local FSIZE=$(stat $FILE | grep "Size:" | awk '{print $2}')
+    local FSIZE=$(stat "$FILE" | grep "Size:" | awk '{print $2}')
     if [[ $FSIZE -gt 33554431 ]]; then
       vt_bigfile "$APIKEY" "$FILE"
     else
