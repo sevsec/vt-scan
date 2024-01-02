@@ -65,7 +65,7 @@ vt_url() {
     # Submit a URL
     APIKEY="$1"
     URL="$2"
-    curl -s --request GET --url "https://www.virustotal.com/api/v3/urls" --header "x-apikey: $APIKEY" --form "url=$URL"
+    curl -s --request POST --url "https://www.virustotal.com/api/v3/urls" --header "x-apikey: $APIKEY" --form "url=$URL"
 }
 
 vt_domain() {
